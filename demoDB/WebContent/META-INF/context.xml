@@ -1,0 +1,6 @@
+<Context>
+	<Resource name="jdbc/FlightDB" auth="Container" type="javax.sql.DataSource"
+				maxTotal="200" maxIdle="100" maxWaitMillis="10000"
+				username="fripSide@jolnosaigo" password="yoshinon@840712" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+				url="jdbc:sqlserver://jolnosaigo.database.windows.net:1433;database=flight_info"/>
+</Context>
