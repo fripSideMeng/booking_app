@@ -14,10 +14,16 @@ public class Book extends HttpServlet {
 	}
 
 	private void checkDanglingTransaction(Connection conn) {
-		try {
-			try (ResultSet rs = conn.prepareStatement("SELECT @@TRANCOUNT AS tran_count").executeQuery()) {
-				rs.next();
-				int count = rs.getInt("tran_count");
+		try (Statement statement = conn.createStatement()) {
+			try (ResultSet resultSet = statement.executeQuery(
+					"SHOW PROCESSLIST")) {
+				int count = 0;
+				while (resultSet.next()) {
+					String state = resultSet.getString( "command" );
+					if ("sleep".equalsIgnoreCase( state )) {
+						count++;
+					}
+				}
 				if (count > 0) {
 					throw new IllegalStateException(
 							"Transaction not fully commit/rollback. Number of transaction in process: " + count);
@@ -26,7 +32,7 @@ public class Book extends HttpServlet {
 				conn.setAutoCommit(true);
 			}
 		} catch (SQLException e) {
-			throw new IllegalStateException("Database error", e);
+			throw new IllegalStateException(e);
 		}
 	}
 

@@ -31,38 +31,36 @@ public class Login implements Filter {
 
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
-		Connection conn = null;		
-		PreparedStatement userLogInStatement = null;
+		PreparedStatement userLogInStatement;
 		
-		HttpServletRequest req = HttpServletRequest.class.cast(request);
-		HttpServletResponse res = HttpServletResponse.class.cast(response);
+		HttpServletRequest req;
+		req = HttpServletRequest.class.cast(request);
+		HttpServletResponse res;
+		res = HttpServletResponse.class.cast(response);
 
 		res.setContentType("text/html");
 		PrintWriter pw = res.getWriter();
 
+		Connection conn;
 		try {
 			conn = ds.getConnection();
 			conn.setAutoCommit(true);
 			conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 			userLogInStatement = conn.prepareStatement(USER_LOG_IN);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			pw.println("Connection problem, retry later");
 			req.getRequestDispatcher("index.html").include(req, res);
 			return;
 		}
 		
-		String nameInput = "";
-		String passwd = "";
+		String nameInput;
+		String passwd;
 
 		if (req.getParameter("userName") != null && req.getParameter("userPass") != null) {
 			nameInput = req.getParameter("userName");
 			passwd = req.getParameter("userPass");
 		} else if (req.getSession(false) != null && req.getSession(false).getAttribute("uname") != null) {
 			chain.doFilter(req, res);
-		} else {
-			pw.println("Username or password error!");
-			req.getRequestDispatcher("index.html").include(req, res);
-			return;
 		}
 
 		String status = transaction_login(nameInput, passwd, userLogInStatement);
@@ -92,7 +90,7 @@ public class Login implements Filter {
 					hash_db = rs.getBytes("Password");
 					salt = rs.getBytes("Salt");
 				} catch (NullPointerException e) {
-					return transaction_login(username, password, userLogInStatement);
+					return "Login failed\n";
 				}
 			} else {
 				return "Login failed\n";
@@ -112,7 +110,6 @@ public class Login implements Filter {
 			}
 
 			rs.close();
-			// userLogInStatement.clearParameters();
 			if (Arrays.equals(hash, hash_db)) {
 				return "Logged in as " + username + "\n";
 			} else {
