@@ -16,6 +16,8 @@ CREATE TABLE Flights(
   actual_time smallint,
   distance smallint,
   capacity smallint,
-  price smallint
+  price smallint,
+  PRIMARY KEY (actual_time, fid)
 );
+ALTER TABLE Flights ENGINE=MyISAM;
 
