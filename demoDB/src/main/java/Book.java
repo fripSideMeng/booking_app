@@ -6,7 +6,6 @@ import javax.servlet.http.*;
 
 public class Book extends HttpServlet {
 	private static final String CHECK_FLIGHT_CAPACITY = "SELECT capacity FROM Flights WHERE fid = ?";
-	private static final String SEARCH_DAY_FID = "SELECT day_of_month FROM Flights WHERE fid = ?";
 	private PreparedStatement checkFlightCapacityStatement;
 
 	private static boolean isDeadLock(SQLException ex) {
@@ -136,8 +135,8 @@ public class Book extends HttpServlet {
 				if (!rs.next()) {
 					conn.createStatement()
 							.executeUpdate("INSERT INTO Reservations "
-									+ "VALUES ('" + currentName + "', " + r.fid1 + ", " + r.fid2 + ", " + r.day + ", "
-									+ r.price + ", " + r.paidOrNot + ")");
+									+ "VALUES ('" + currentName + "', " + r.paidOrNot + ", " + r.price + ", " + r.day + ", "
+									+ r.fid1 + ", " + r.fid2 + ")");
 					conn.commit();					
 					rs.close();
 				} else {
