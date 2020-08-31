@@ -117,6 +117,7 @@ public class Search extends HttpServlet {
 				Flight f = f1.getNewFlight();
 				f.fid = zeroHopResults.getInt("fid");
 				f.infoSearch(f.fid);
+				searchResult.add(f);
 
 				r1.fid1 = f.fid;
 				r1.day = f.dayOfMonth;
