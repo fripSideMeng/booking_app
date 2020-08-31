@@ -1,0 +1,6 @@
+<Context>
+	<Resource name="jdbc/FlightDB" auth="Container" type="javax.sql.DataSource"
+				maxTotal="200" maxIdle="100" maxWaitMillis="10000"
+				username="flight_manager" password="dec123" driverClassName="org.mariadb.jdbc.Driver"
+				url="jdbc:mariadb://192.168.1.222:3306/flight_info"/>
+</Context>

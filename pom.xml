@@ -12,6 +12,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <build>
@@ -19,8 +20,15 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
+        <version>2.2</version>
         <configuration>
-          <webXml>demoDB/WebContent/WEB-INF/web.xml</webXml>
+          <packagingExcludes>demoDB/src/main/webapp/WEB-INF/web.xml</packagingExcludes>
+          <webResources>
+            <resource>
+              <directory>demoDB/src/main/webapp</directory>
+              <filtering>true</filtering>
+            </resource>
+          </webResources>
         </configuration>
       </plugin>
     </plugins>
@@ -31,12 +39,6 @@
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-servlet-api</artifactId>
       <version>9.0.30</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mariadb.jdbc</groupId>
-      <artifactId>mariadb-java-client</artifactId>
-      <version>2.6.2</version>
     </dependency>
   </dependencies>
 
