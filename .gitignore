@@ -1,7 +1,0 @@
-# Default ignored files
-**/.idea
-/shelf/
-/workspace.xml
-**/target/*
-**/demoDB/src/main/webapp/WEB-INF/*.war
-**/demoDB/src/main/java/*.class
