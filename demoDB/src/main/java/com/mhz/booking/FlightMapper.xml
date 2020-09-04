@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mhz.booking.FlightMapper">
+    <select id="transaction_login" resultMap="user">
+        SELECT * FROM Users WHERE Username = #{userName};
+    </select>
+    <resultMap id="user" type="com.mhz.booking.User">
+        <id property="userName" column="Username"/>
+        <result property="balance" column="Balance"/>
+        <result property="passwd" column="Password"/>
+        <result property="salt" column="Salt"/>
+    </resultMap>
+    <select id="checkIfUserExists" resultType="String">
+        SELECT Username FROM Users WHERE Username = #{userName};
+    </select>
+    <insert id="transaction_createUser" timeout="10">
+        INSERT INTO Users VALUES(#{userName}, #{password}, #{salt}, #{balance});
+    </insert>
+    <select id="transaction_search" resultMap="flights">
+        SELECT fid, day_of_month, carrier_id, flight_num, origin_city,
+        dest_city, actual_time, capacity, price
+        FROM Flights WHERE origin_city = #{originCity} AND dest_city = #{destCity}
+        AND day_of_month = #{dayOfMonth} AND actual_time > 0 ORDER BY actual_time ASC,
+        fid ASC LIMIT #{numOfFlights};
+    </select>
+    <resultMap id="flights" type="com.mhz.booking.Flight">
+        <result property="fid" column="fid"/>
+        <result property="time" column="actual_time"/>
+        <result property="price" column="price"/>
+        <result property="flightNum" column="flight_num"/>
+        <result property="originCity" column="origin_city"/>
+        <result property="destCity" column="dest_city"/>
+        <result property="carrierId" column="carrier_id"/>
+        <result property="dayOfMonth" column="day_of_month"/>
+        <result property="capacity" column="capacity"/>
+    </resultMap>
+    <select id="transaction_search_indirect" resultMap="indirect_flights">
+        SELECT f1.fid AS f1_fid, f1.day_of_month AS f1_day_of_month,
+        f1.carrier_id AS f1_carrier_id, f1.flight_num AS f1_flight_num, f1.origin_city AS f1_origin_city,
+        f1.dest_city AS f1_dest_city, f1.actual_time AS f1_actual_time, f1.capacity AS f1_capacity, f1.price AS f1_price,
+        f2.fid AS f2_fid, f2.day_of_month AS f2_day_of_month, f2.carrier_id AS f2_carrier_id,
+        f2.flight_num AS f2_flight_num, f2.origin_city AS f2_origin_city,
+        f2.dest_city AS f2_dest_city, f2.actual_time AS f2_actual_time, f2.capacity AS f2_capacity, f2.price AS f2_price
+        FROM Flights AS f1, Flights AS f2 WHERE f1.day_of_month = f2.day_of_month
+        AND f1.origin_city = #{originCity} AND f2.dest_city = #{destCity} AND f1.day_of_month = #{dayOfMonth}
+        AND f1.dest_city = f2.origin_city  AND f1.actual_time > 0 AND f2.actual_time > 0
+        ORDER BY (f1.actual_time + f2.actual_time) ASC, f1_fid ASC LIMIT #{numOfFlights};
+    </select>
+    <resultMap id="indirect_flights" type="com.mhz.booking.TwoFlights">
+        <result property="f1_fid" column="f1_fid"/>
+        <result property="f2_fid" column="f2_fid"/>
+        <result property="f1_capacity" column="f1_capacity"/>
+        <result property="f2_capacity" column="f2_capacity"/>
+        <result property="f1_carrierId" column="f1_carrier_id"/>
+        <result property="f2_carrierId" column="f2_carrier_id"/>
+        <result property="f1_dayOfMonth" column="f1_day_of_month"/>
+        <result property="f2_dayOfMonth" column="f2_day_of_month"/>
+        <result property="f1_flightNum" column="f1_flight_num"/>
+        <result property="f2_flightNum" column="f2_flight_num"/>
+        <result property="f1_originCity" column="f1_origin_city"/>
+        <result property="f2_originCity" column="f2_origin_city"/>
+        <result property="f1_destCity" column="f1_dest_city"/>
+        <result property="f2_destCity" column="f2_dest_city"/>
+        <result property="f1_time" column="f1_actual_time"/>
+        <result property="f2_time" column="f2_actual_time"/>
+        <result property="f1_price" column="f1_price"/>
+        <result property="f2_price" column="f2_price"/>
+    </resultMap>
+    <select id="checkCapacity" resultMap="flight_part">
+        SELECT capacity, day_of_month, origin_city, dest_city FROM Flights WHERE fid = #{fid};
+    </select>
+    <resultMap id="flight_part" type="com.mhz.booking.Flight">
+        <result property="capacity" column="capacity"/>
+        <result property="dayOfMonth" column="day_of_month"/>
+        <result property="originCity" column="origin_city"/>
+        <result property="destCity" column="dest_city"/>
+    </resultMap>
+    <select id="checkBookedSeats1" resultType="int">
+        SELECT COUNT(*) FROM Reservations WHERE Fid1 = #{Fid1};
+    </select>
+    <select id="checkBookedSeats2" resultType="int">
+        SELECT COUNT(*) FROM Reservations WHERE Fid1 = #{Fid2};
+    </select>
+    <select id="checkCurrentReservation" resultType="Integer">
+        SELECT Fid1 FROM Reservations WHERE Username = #{userName}
+        AND Day = #{day};
+    </select>
+    <insert id="insert_reservation">
+        INSERT INTO Reservations VALUES(#{userName}, #{paidOrNot}, #{price}, #{day},
+        #{fid1}, #{fid2});
+    </insert>
+    <update id="update_reservation">
+        UPDATE Reservations SET Fid2 = #{fid2} WHERE Username = #{userName} AND Fid1 = #{fid1};
+    </update>
+    <select id="list_reservations" resultMap="reservation_list">
+        SELECT r.Username AS Username, r.Day AS Day, r.PaidOrNot AS PaidOrNot, i.ReservationID
+        AS ReservationID FROM Reservations r INNER JOIN ID i WHERE r.Username = #{userName};
+    </select>
+    <resultMap id="reservation_list" type="com.mhz.booking.Reservation">
+        <result property="userName" column="Username"/>
+        <result property="day" column="Day"/>
+        <result property="paidOrNot" column="PaidOrNot"/>
+        <result property="reservationId" column="ReservationID"/>
+    </resultMap>
+    <select id="retrieve_price" resultMap="reservation_part">
+        SELECT Price, Day FROM Reservations INNER JOIN ID WHERE ReservationID = #{reservationId};
+    </select>
+    <resultMap id="reservation_part" type="com.mhz.booking.Reservation">
+        <result property="price" column="Price"/>
+        <result property="day" column="Day"/>
+    </resultMap>
+    <select id="balance_check" resultType="int">
+        SELECT Balance FROM Users WHERE Username = #{userName};
+    </select>
+    <update id="update_balance">
+        UPDATE Users SET Balance = #{newBalance} WHERE Username = #{userName};
+    </update>
+    <update id="update_payment_status">
+        UPDATE Reservations SET PaidOrNot = 1 WHERE Username = #{userName} AND Day = #{day};
+    </update>
+    <delete id="cancel_reservation">
+        DELETE FROM Reservations WHERE Username = #{userName} AND Day = #{day};
+    </delete>
+    <update id="user_refund">
+        UPDATE Users SET Balance = Balance + #{refund} WHERE Username = #{userName};
+    </update>
+</mapper>
+ 

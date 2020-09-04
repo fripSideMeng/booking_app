@@ -10,124 +10,124 @@
 	<res-auth>Container</res-auth>
   </resource-ref>
   <filter>
-	<filter-name>Login</filter-name>
-	<filter-class>Login</filter-class>
+	<filter-name>com.mhz.frontend.Login</filter-name>
+	<filter-class>com.mhz.frontend.Login</filter-class>
   </filter>
   <filter-mapping>
-	<filter-name>Login</filter-name>
+	<filter-name>com.mhz.frontend.Login</filter-name>
 	<url-pattern>/welcome</url-pattern>
   </filter-mapping>
   <servlet>
-	<servlet-name>Welcome</servlet-name>
-	<servlet-class>Welcome</servlet-class>
+	<servlet-name>com.mhz.frontend.Welcome</servlet-name>
+	<servlet-class>com.mhz.frontend.Welcome</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>Welcome</servlet-name>
+	<servlet-name>com.mhz.frontend.Welcome</servlet-name>
 	<url-pattern>/welcome</url-pattern>
   </servlet-mapping>
   <servlet>
-	<servlet-name>Logout</servlet-name>
-	<servlet-class>Logout</servlet-class>
+	<servlet-name>com.mhz.frontend.Logout</servlet-name>
+	<servlet-class>com.mhz.frontend.Logout</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>Logout</servlet-name>
+	<servlet-name>com.mhz.frontend.Logout</servlet-name>
 	<url-pattern>/logout</url-pattern>
   </servlet-mapping>
   <servlet>
-	<servlet-name>UserCreate</servlet-name>
-	<servlet-class>UserCreate</servlet-class>
+	<servlet-name>com.mhz.booking.UserCreate</servlet-name>
+	<servlet-class>com.mhz.booking.UserCreate</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>UserCreate</servlet-name>
+	<servlet-name>com.mhz.booking.UserCreate</servlet-name>
 	<url-pattern>/create</url-pattern>
   </servlet-mapping>
   <servlet>
-	<servlet-name>Search</servlet-name>
-	<servlet-class>Search</servlet-class>
+	<servlet-name>com.mhz.booking.Search</servlet-name>
+	<servlet-class>com.mhz.booking.Search</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>Search</servlet-name>
+	<servlet-name>com.mhz.booking.Search</servlet-name>
 	<url-pattern>/search</url-pattern>
   </servlet-mapping>
   
   <filter>
-	<filter-name>Reservation</filter-name>
-	<filter-class>Reservation</filter-class>
+	<filter-name>com.mhz.booking.Reservation</filter-name>
+	<filter-class>com.mhz.booking.Reservation</filter-class>
   </filter>
   <filter-mapping>
-	<filter-name>Reservation</filter-name>
+	<filter-name>com.mhz.booking.Reservation</filter-name>
 	<url-pattern>/search</url-pattern>
   </filter-mapping>
   <filter>
-	<filter-name>Flight</filter-name>
-	<filter-class>Flight</filter-class>
+	<filter-name>com.mhz.booking.Flight</filter-name>
+	<filter-class>com.mhz.booking.Flight</filter-class>
   </filter>
   <filter-mapping>
-	<filter-name>Flight</filter-name>
+	<filter-name>com.mhz.booking.Flight</filter-name>
 	<url-pattern>/search</url-pattern>
   </filter-mapping>
   <filter>
-	<filter-name>BookCheck</filter-name>
-	<filter-class>BookCheck</filter-class>
+	<filter-name>com.mhz.booking.BookCheck</filter-name>
+	<filter-class>com.mhz.booking.BookCheck</filter-class>
   </filter>
   <filter-mapping>
-	<filter-name>BookCheck</filter-name>
+	<filter-name>com.mhz.booking.BookCheck</filter-name>
 	<url-pattern>/book</url-pattern>
   </filter-mapping>
   <servlet>
-	<servlet-name>Book</servlet-name>
-	<servlet-class>Book</servlet-class>
+	<servlet-name>com.mhz.booking.Book</servlet-name>
+	<servlet-class>com.mhz.booking.Book</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>Book</servlet-name>
+	<servlet-name>com.mhz.booking.Book</servlet-name>
 	<url-pattern>/book</url-pattern>
   </servlet-mapping>
   <servlet>
-	<servlet-name>Pay</servlet-name>
-	<servlet-class>Pay</servlet-class>
+	<servlet-name>com.mhz.booking.Pay</servlet-name>
+	<servlet-class>com.mhz.booking.Pay</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>Pay</servlet-name>
+	<servlet-name>com.mhz.booking.Pay</servlet-name>
 	<url-pattern>/pay</url-pattern>
   </servlet-mapping>
   <filter>
-	<filter-name>ViewCheck</filter-name>
-	<filter-class>ViewCheck</filter-class>
+	<filter-name>com.mhz.booking.ViewCheck</filter-name>
+	<filter-class>com.mhz.booking.ViewCheck</filter-class>
   </filter>
   <filter-mapping>
-	<filter-name>ViewCheck</filter-name>
+	<filter-name>com.mhz.booking.ViewCheck</filter-name>
 	<url-pattern>/view</url-pattern>
   </filter-mapping>
   <servlet>
-	<servlet-name>ViewReservation</servlet-name>
-	<servlet-class>ViewReservation</servlet-class>
+	<servlet-name>com.mhz.booking.ViewReservation</servlet-name>
+	<servlet-class>com.mhz.booking.ViewReservation</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>ViewReservation</servlet-name>
+	<servlet-name>com.mhz.booking.ViewReservation</servlet-name>
 	<url-pattern>/view</url-pattern>
   </servlet-mapping>
   <servlet>
-	<servlet-name>ViewBalance</servlet-name>
-	<servlet-class>ViewBalance</servlet-class>
+	<servlet-name>com.mhz.booking.ViewBalance</servlet-name>
+	<servlet-class>com.mhz.booking.ViewBalance</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>ViewBalance</servlet-name>
+	<servlet-name>com.mhz.booking.ViewBalance</servlet-name>
 	<url-pattern>/balance</url-pattern>
   </servlet-mapping>
   <servlet>
-	<servlet-name>Cancel</servlet-name>
-	<servlet-class>Cancel</servlet-class>
+	<servlet-name>com.mhz.booking.Cancel</servlet-name>
+	<servlet-class>com.mhz.booking.Cancel</servlet-class>
   </servlet>
   <servlet-mapping>
-	<servlet-name>Cancel</servlet-name>
+	<servlet-name>com.mhz.booking.Cancel</servlet-name>
     <url-pattern>/cancel</url-pattern>
   </servlet-mapping>
   <filter>
-	<filter-name>CancelCheck</filter-name>
-	<filter-class>CancelCheck</filter-class>
+	<filter-name>com.mhz.booking.CancelCheck</filter-name>
+	<filter-class>com.mhz.booking.CancelCheck</filter-class>
   </filter>
   <filter-mapping>
-	<filter-name>CancelCheck</filter-name>
+	<filter-name>com.mhz.booking.CancelCheck</filter-name>
 	<url-pattern>/cancel</url-pattern>
   </filter-mapping>
 </web-app>
