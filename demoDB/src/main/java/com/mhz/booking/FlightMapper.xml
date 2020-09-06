@@ -95,21 +95,29 @@
         UPDATE Reservations SET Fid2 = #{fid2} WHERE Username = #{userName} AND Fid1 = #{fid1};
     </update>
     <select id="list_reservations" resultMap="reservation_list">
-        SELECT r.Username AS Username, r.Day AS Day, r.PaidOrNot AS PaidOrNot, i.ReservationID
-        AS ReservationID FROM Reservations r INNER JOIN ID i WHERE r.Username = #{userName};
+        SELECT r.Username AS Username, r.Day AS Day, r.PaidOrNot AS PaidOrNot, i.ReservationID AS ReservationID,
+        r.Price AS Price, r.Fid1 AS Fid1, r.Fid2 AS Fid2 FROM Reservations r INNER JOIN ID i
+        WHERE r.Username = #{userName};
     </select>
     <resultMap id="reservation_list" type="com.mhz.booking.Reservation">
         <result property="userName" column="Username"/>
         <result property="day" column="Day"/>
         <result property="paidOrNot" column="PaidOrNot"/>
         <result property="reservationId" column="ReservationID"/>
+        <result property="fid1" column="Fid1"/>
+        <result property="fid2" column="Fid2"/>
+        <result property="price" column="Price"/>
     </resultMap>
     <select id="retrieve_price" resultMap="reservation_part">
-        SELECT Price, Day FROM Reservations INNER JOIN ID WHERE ReservationID = #{reservationId};
+        SELECT r.Price AS Price, r.Day AS Day, r.PaidOrNot AS PaidOrNot, r.Fid1 AS Fid1, r.Fid2 AS Fid2
+        FROM Reservations r INNER JOIN ID i WHERE i.ReservationID = #{reservationId};
     </select>
     <resultMap id="reservation_part" type="com.mhz.booking.Reservation">
         <result property="price" column="Price"/>
         <result property="day" column="Day"/>
+        <result property="paidOrNot" column="PaidOrNot"/>
+        <result property="fid1" column="Fid1"/>
+        <result property="fid2" column="Fid2"/>
     </resultMap>
     <select id="balance_check" resultType="int">
         SELECT Balance FROM Users WHERE Username = #{userName};
@@ -126,5 +134,12 @@
     <update id="user_refund">
         UPDATE Users SET Balance = Balance + #{refund} WHERE Username = #{userName};
     </update>
+    <select id="get_origin_dest" resultMap="origin_dest">
+        SELECT origin_city, dest_city FROM Flights WHERE fid = #{fid};
+    </select>
+    <resultMap id="origin_dest" type="com.mhz.booking.Flight">
+        <result property="originCity" column="origin_city"/>
+        <result property="destCity" column="dest_city"/>
+    </resultMap>
 </mapper>
  

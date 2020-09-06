@@ -4,46 +4,48 @@
     <meta charset="UTF-8">
     <style>
 		h1 {text-align:center;}
-		p {text-align: center;}
+		h2 {text-align: center;}
+		table {text-align: center;}
 	</style>
     <title>Viewing Page</title>
 </head>
 <body>
-  <form action="welcome" method="post"><input type="submit" value="Homepage"/></form>
-  <form action="balance" method="post"><input type="submit" value="View Balance"/></form>
-  <a href="logout">Logout</a>
-  <button name="View your reservations" onclick="loadDoc()">View Your Reservations</button>
-  <hr/>
-  <h1>Current Reservations</h1>
-  <p id="reservations">Your reservations will be listed here</p>
-  <script type = "text/javascript">
+<form action="welcome" method="post"><input type="submit" value="Homepage"/></form>
+<form action="balance" method="post"><input type="submit" value="View Balance"/></form>
+<a href="logout">Logout</a>
+<button name="View your reservations" onclick="loadDoc()">View Your Reservations</button>
+<hr/>
+<h1>Current Reservations</h1>
+<h2 id="reservations">Your reservations will be listed here</h2>
+<script type = "text/javascript">
       function loadDoc() {
-		var xhttp;
-        xhttp = new XMLHttpRequest();
+		var xhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+        xhttp.open("GET", "view", true);
 		xhttp.onreadystatechange = function() {
-		  if (this.readyState == 4 && this.status == 200) {
-		    myParser(this);
+		  if (xhttp.readyState == 4 && xhttp.status == 200) {
+		    myParser(xhttp);
 	 	  }
-		}
-		xhttp.open("GET", "view", true);
+		};
 		xhttp.send();
       }
       function myParser(xml) {
         var xmlDoc = xml.responseXML;
-  		var table = "<tr><th>Rid</th><th>Payment Status</th><th>Day</th><th>Pay for this reservation</th><th>Cancel this reservation</th></tr>";
-  		var nodes = xml.evaluate("/Reservations/Reservation", xml, null, XPathResult.ANY_TYPE, null);
-        var result = nodes.iterateNext();
-        while (result) {
-          table += "<tr><td>" +
-                   result.childNodes[0].nodeValue + "</td><td>" +
-                   result.childNodes[1].nodeValue + "</td><td>" +
-                   result.childNodes[2].nodeValue + "</td><td>" +
-                   result.childNodes[3].nodeValue + "</td><td>" +
-                   result.childNodes[4].nodeValue + "</td></tr>";
-          result = nodes.iterateNext();
+        var table = "<table border='1' style='border:1px solid black;margin-left:auto;margin-right:auto;'>"
+                    + "<tr><th>Rid</th><th>Payment Status</th><th>Day</th><th>Price</th><th>Origin</th><th>Dest</th>"
+                    + "<th>Pay for this reservation</th><th>Cancel this reservation</th></tr>";
+        var reservationList = xmlDoc.getElementsByTagName("Reservation");
+        for (var i = 0; i < reservationList.length; i++) {
+          table += "<tr><th>" + xmlDoc.getElementsByTagName("rid")[i].textContent + "</th>" +
+                   "<th>" + xmlDoc.getElementsByTagName("paidOrNot")[i].textContent + "</th>" +
+                   "<th>" + xmlDoc.getElementsByTagName("day")[i].textContent + "</th>" +
+                   "<th>" + xmlDoc.getElementsByTagName("price")[i].textContent + "</th>" +
+                   "<th>" + xmlDoc.getElementsByTagName("origin")[i].textContent + "</th>" +
+                   "<th>" + xmlDoc.getElementsByTagName("dest")[i].textContent + "</th>" +
+                   "<th>" + xmlDoc.getElementsByTagName("pay")[i].textContent + "</th>" +
+                   "<th>" + xmlDoc.getElementsByTagName("cancel")[i].textContent + "</th></tr>";
         }
-        document.getElementById("reservations").innerHTML = table;
+        document.getElementById("reservations").innerHTML = table + "</table>";
       }
-  </script>
+</script>
 </body>
 </html>

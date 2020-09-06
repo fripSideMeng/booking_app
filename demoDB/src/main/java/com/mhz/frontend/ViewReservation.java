@@ -24,13 +24,10 @@ public class ViewReservation extends HttpServlet {
             res.setContentType("text/xml;charset=UTF-8");
             PrintWriter pw = res.getWriter();
             String reservations = currentQuery.view_reservations(currentQuery.getCurrentUserName(), 4);
-            if (reservations.startsWith("Failed")) {
-                return;
-            }
-            pw.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-            pw.append("<Reservations>\n");
-            pw.append(reservations);
-            pw.append("<Reservations>");
+            pw.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+            pw.print("<Reservations>\n");
+            pw.print(reservations);
+            pw.println("</Reservations>");
         }
     }
 }

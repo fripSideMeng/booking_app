@@ -67,16 +67,14 @@ public class Query {
                 return "Logged in failed, password error!<br/>";
             }
         } catch (PersistenceException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof SQLException && transactionRetry > 0) {
-                SQLException e1 = new SQLException(cause);
-                if (isNotDeadLock(e1)) {
-                    session.rollback();
-                }
-                return login(userName, password, --transactionRetry);
-            } else {
-                return "Internal error, try again later.<br/>";
+            return transactionRetry > 0 ?
+                    login(userName, password, --transactionRetry) : "Internal error, try again later.<br/>";
+        } catch (SQLException e1) {
+            if (isNotDeadLock(e1)) {
+                session.rollback();
             }
+            return transactionRetry > 0 ?
+                    login(userName, password, --transactionRetry) : "Internal error, try again later.<br/>";
         }
     }
     public String search(String originCity, String destCity,
@@ -87,6 +85,22 @@ public class Query {
         session.commit();
         int itineraryId = 1;
         sb.append("<Flights>\n");
+        if (flights == null || flights.size() == 0) {
+            sb.append("  <Flight>\n");
+            sb.append("    <day>").append("</day>\n");
+            sb.append("    <carrier>").append("</carrier>\n");
+            sb.append("    <number>").append("</number>\n");
+            sb.append("    <origin>").append("</origin>\n");
+            sb.append("    <dest>").append("</dest>\n");
+            sb.append("    <capacity>").append("</capacity>\n");
+            sb.append("    <time>").append("</time>\n");
+            sb.append("    <price>").append("</price>\n");
+            sb.append("    <book>").append("</book>\n");
+            sb.append("  </Flight>\n");
+            if (!indirect) { // Turn to indirect since no direct ones found
+                indirect = true;
+            }
+        }
         if (!indirect || flights.size() >= numOfFlights) {
             for (Flight f : flights) {
                 sb.append("  <Flight>\n");
@@ -99,13 +113,15 @@ public class Query {
                 sb.append("    <time>").append(f.getTime()).append("</time>\n");
                 sb.append("    <price>").append(f.getPrice()).append("</price>\n");
                 if (currentUser != null) {
-                    sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
-                            .append(itineraryId).append("'>Book this flight</a></book>\n");
+                    sb.append("    <book>").append("<a href='book?iid=")
+                            .append(itineraryId).append("'><div style='height:100%;width:100%'>" +
+                            "Book this flight</div></a></book>\n");
                     recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                             f.getFid(), -1, f.getDayOfMonth(), f.getPrice(), 0));
                     itineraryId++;
                 } else {
-                    sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
+                    sb.append("    <book><a href='index.html'><div style='height:100%;width:100%'>" +
+                            "Log in to book this flight</div></a></book>\n");
                 }
                 sb.append("  </Flight>\n");
             }
@@ -114,6 +130,20 @@ public class Query {
                     flightMapper.transaction_search_indirect(originCity, destCity, dayOfMonth,
                             numOfFlights - flights.size());
             session.commit();
+            if (indirectFlights == null || indirectFlights.size() == 0) { // Search is finished
+                sb.append("  <Flight>\n");
+                sb.append("    <day>").append("</day>\n");
+                sb.append("    <carrier>").append("</carrier>\n");
+                sb.append("    <number>").append("</number>\n");
+                sb.append("    <origin>").append("</origin>\n");
+                sb.append("    <dest>").append("</dest>\n");
+                sb.append("    <capacity>").append("</capacity>\n");
+                sb.append("    <time>").append("</time>\n");
+                sb.append("    <price>").append("</price>\n");
+                sb.append("    <book>").append("</book>\n");
+                sb.append("  </Flight>\n");
+                return sb.append("</Flights>\n").toString();
+            }
             int index1 = 0;
             int index2 = 0;
             while (index1 < flights.size() && index2 < indirectFlights.size()) {
@@ -132,13 +162,15 @@ public class Query {
                     sb.append("    <time>").append(f.getTime()).append("</time>\n");
                     sb.append("    <price>").append(f.getPrice()).append("</price>\n");
                     if (currentUser != null) {
-                        sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
-                                .append(itineraryId).append("'>Book this flight</a></book>\n");
+                        sb.append("    <book>").append("<a href='book?iid=")
+                                .append(itineraryId).append("'><div style='height:100%;width:100%'>" +
+                                "Book this flight</div></a></book>\n");
                         recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                                 f.getFid(), -1, f.getDayOfMonth(), f.getPrice(), 0));
                         itineraryId++;
                     } else {
-                        sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
+                        sb.append("    <book><a href='index.html'><div style='height:100%;width:100%'>" +
+                                "Log in to book this flight</div></a></book>\n");
                     }
                     sb.append("  </Flight>\n");
                     index1++;
@@ -154,13 +186,15 @@ public class Query {
                         sb.append("    <time>").append(f.getTime()).append("</time>\n");
                         sb.append("    <price>").append(f.getPrice()).append("</price>\n");
                         if (currentUser != null) {
-                            sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
-                                    .append(itineraryId).append("'>Book this flight</a></book>\n");
+                            sb.append("    <book>").append("<a href='book?iid=")
+                                    .append(itineraryId).append("'><div style='height:100%;width:100%'>" +
+                                    "Book this flight</div></a></book>\n");
                             recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                                     f.getFid(), -1, f.getDayOfMonth(), f.getPrice(), 0));
                             itineraryId++;
                         } else {
-                            sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
+                            sb.append("    <book><a href='index.html'><div style='height:100%;width:100%'>" +
+                                    "Log in to book this flight</div></a></book>\n");
                         }
                         sb.append("  </Flight>\n");
                         index1++;
@@ -183,13 +217,15 @@ public class Query {
                                 .append(f2.getTime()).append("</time>\n");
                         sb.append("    <price>").append(ff.getPrice()).append("</price>\n");
                         if (currentUser != null) {
-                            sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
-                                    .append(itineraryId).append("'>Book this flight</a></book>\n");
+                            sb.append("    <book>").append("<a href='book?iid=")
+                                    .append(itineraryId).append("'><div style='height:100%;width:100%'>" +
+                                    "Book this flight</div></a></book>\n");
                             recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                                     ff.getF1_fid(), ff.getF2_fid(), ff.getDayOfMonth(), ff.getPrice(), 0));
                             itineraryId++;
                         } else {
-                            sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
+                            sb.append("    <book><a href='index.html'><div style='height:100%;width:100%'>" +
+                                    "Log in to book this flight</div></a></book>\n");
                         }
                         sb.append("  </Flight>\n");
                         index2++;
@@ -213,13 +249,15 @@ public class Query {
                             .append(f2.getTime()).append("</time>\n");
                     sb.append("    <price>").append(ff.getPrice()).append("</price>\n");
                     if (currentUser != null) {
-                        sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
-                                .append(itineraryId).append("'>Book this flight</a></book>\n");
+                        sb.append("    <book>").append("<a href='book?iid=")
+                                .append(itineraryId).append("'><div style='height:100%;width:100%'>" +
+                                "Book this flight</div></a></book>\n");
                         recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                                 ff.getF1_fid(), ff.getF2_fid(), ff.getDayOfMonth(), ff.getPrice(), 0));
                         itineraryId++;
                     } else {
-                        sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
+                        sb.append("    <book><a href='index.html'><div style='height:100%;width:100%'>" +
+                                "Log in to book this flight</div></a></book>\n");
                     }
                     sb.append("  </Flight>\n");
                     index2++;
@@ -237,13 +275,15 @@ public class Query {
                 sb.append("    <time>").append(f.getTime()).append("</time>\n");
                 sb.append("    <price>").append(f.getPrice()).append("</price>\n");
                 if (currentUser != null) {
-                    sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
-                            .append(itineraryId).append("'>Book this flight</a></book>\n");
+                    sb.append("    <book>").append("<a href='book?iid=")
+                            .append(itineraryId).append("'><div style='height:100%;width:100%'>" +
+                            "Book this flight</div></a></book>\n");
                     recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                             f.getFid(), -1, f.getDayOfMonth(), f.getPrice(), 0));
                     itineraryId++;
                 } else {
-                    sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
+                    sb.append("    <book><a href='index.html'><div style='height:100%;width:100%'>" +
+                            "Log in to book this flight</div></a></book>\n");
                 }
                 sb.append("  </Flight>\n");
                 index1++;
@@ -268,19 +308,21 @@ public class Query {
                         .append(f2.getTime()).append("</time>\n");
                 sb.append("    <price>").append(ff.getPrice()).append("</price>\n");
                 if (currentUser != null) {
-                    sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
-                            .append(itineraryId).append("'>Book this flight</a></book>\n");
+                    sb.append("    <book>").append("<a href='book?iid=")
+                            .append(itineraryId).append("'><div style='height:100%;width:100%'>" +
+                            "Book this flight</div></a></book>\n");
                     recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                             ff.getF1_fid(), ff.getF2_fid(), ff.getDayOfMonth(), ff.getPrice(), 0));
                     itineraryId++;
                 } else {
-                    sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
+                    sb.append("    <book><a href='index.html'><div style='height:100%;width:100%'>" +
+                            "Log in to book this flight</div></a></book>\n");
                 }
                 sb.append("  </Flight>\n");
                 index2++;
             }
         }
-        sb.append("</Flights>");
+        sb.append("</Flights>\n");
         return sb.toString();
     }
     public String createUser(String userName, String password,
@@ -312,16 +354,14 @@ public class Query {
             session.commit();
             return "User: " + userName + " created!<br/>";
         } catch (PersistenceException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof SQLException && transactionRetry > 0) {
-                SQLException e1 = new SQLException(cause);
-                if (isNotDeadLock(e1)) {
-                    session.rollback();
-                }
-                return createUser(userName, password, balance, --transactionRetry);
-            } else {
-                return "Internal error, try again later.<br/>";
+            return transactionRetry > 0 ?
+                    createUser(userName, password, balance, --transactionRetry) : "Internal error, try again later.<br/>";
+        } catch (SQLException e1) {
+            if (isNotDeadLock(e1)) {
+                session.rollback();
             }
+            return transactionRetry > 0 ?
+                    createUser(userName, password, balance, --transactionRetry) : "Internal error, try again later.<br/>";
         }
 
     }
@@ -329,6 +369,9 @@ public class Query {
         try {
             FlightMapper flightMapper = session.getMapper(FlightMapper.class); // Connection not created yet
             Reservation r = recentSearch.get(itineraryId);
+            if (r == null) {
+                return "No such itinerary";
+            }
             Flight f1 = flightMapper.checkCapacity(r.getFid1());
             session.commit(); // Get capacity for the flight
             int f1Remained = f1.getCapacity() - flightMapper.checkBookedSeats1(r.getFid1());
@@ -365,16 +408,14 @@ public class Query {
                 }
             }
         } catch (PersistenceException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof SQLException && transactionRetry > 0) {
-                SQLException e1 = new SQLException(cause);
-                if (isNotDeadLock(e1)) {
-                    session.rollback();
-                }
-                return book(itineraryId, --transactionRetry);
-            } else {
-                return e.toString();
+            return transactionRetry > 0 ?
+                    book(itineraryId, --transactionRetry) : "Internal error, try again later.<br/>";
+        } catch (SQLException e1) {
+            if (isNotDeadLock(e1)) {
+                session.rollback();
             }
+            return transactionRetry > 0 ?
+                    book(itineraryId, --transactionRetry) : "Internal error, try again later.<br/>";
         }
     }
     public String view_reservations(String userName, int transactionRetry) {
@@ -383,30 +424,50 @@ public class Query {
             List<Reservation> currentReservations = flightMapper.list_reservations(userName);
             session.commit();
             StringBuilder sb = new StringBuilder();
+            if (currentReservations == null || currentReservations.size() == 0) {
+                sb.append("  <Reservation>\n");
+                sb.append("    <rid>").append("</rid>\n");
+                sb.append("    <paidOrNot>").append("</paidOrNot>\n");
+                sb.append("    <day>").append("</day>\n");
+                sb.append("    <price>").append("</price>\n");
+                sb.append("    <origin>").append("</origin>\n");
+                sb.append("    <dest>").append("</dest>\n");
+                sb.append("    <pay>").append("</pay>\n");
+                sb.append("    <cancel>").append("</cancel>\n");
+                sb.append("  </Reservation>\n");
+                return sb.toString();
+            }
             for (Reservation r : currentReservations) {
+                Flight f1 = flightMapper.get_origin_dest(r.getFid1());
+                Flight f2 = flightMapper.get_origin_dest(r.getFid2());
+                String originCity = f1.getOriginCity();
+                String destCity = f2 == null ? f1.getDestCity() : f2.getDestCity();
                 sb.append("  <Reservation>\n");
                 sb.append("    <rid>").append(r.getReservationId()).append("</rid>\n");
                 sb.append("    <paidOrNot>").append(r.getPaidOrNot() == 1 ? "Paid" : "Not paid")
                         .append("</paidOrNot>\n");
                 sb.append("    <day>").append(r.getDay()).append("</day>\n");
-                sb.append("    <pay>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?rid=")
-                        .append(r.getReservationId()).append("'>Pay for this reservation</a></pay>\n");
-                sb.append("    <cancel>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/cancel?rid=")
-                        .append(r.getReservationId()).append("'>Cancel this flight</a></cancel>\n");
+                sb.append("    <price>").append(r.getPrice()).append("</price>\n");
+                sb.append("    <origin>").append(originCity).append("</origin>\n");
+                sb.append("    <dest>").append(destCity).append("</dest>\n");
+                sb.append("    <pay>").append("<a href='pay?rid=")
+                        .append(r.getReservationId()).append("'><div style='height:100%;width:100%'>" +
+                        "Pay for this reservation</div></a></pay>\n");
+                sb.append("    <cancel>").append("<a href='cancel?rid=")
+                        .append(r.getReservationId()).append("'><div style='height:100%;width:100%'>" +
+                        "Cancel this flight</div></a></cancel>\n");
                 sb.append("  </Reservation>\n");
             }
             return sb.toString();
         } catch (PersistenceException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof SQLException && transactionRetry > 0) {
-                SQLException e1 = new SQLException(cause);
-                if (isNotDeadLock(e1)) {
-                    session.rollback();
-                }
-                return view_reservations(userName, --transactionRetry);
-            } else {
-                return "Failed to view reservations, internal error";
+            return transactionRetry > 0 ?
+                    view_reservations(userName, --transactionRetry) : "Internal error, try again later.<br/>";
+        } catch (SQLException e1) {
+            if (isNotDeadLock(e1)) {
+                session.rollback();
             }
+            return transactionRetry > 0 ?
+                    view_reservations(userName, --transactionRetry) : "Internal error, try again later.<br/>";
         }
     }
     public String pay(String userName, int reservationId, int transactionRetry) {
@@ -414,10 +475,16 @@ public class Query {
             FlightMapper flightMapper = session.getMapper(FlightMapper.class);
             Reservation r = flightMapper.retrieve_price(reservationId);
             session.commit();
+            if (r == null) {
+                return "Failed to pay, no such reservation.<br/>";
+            }
             int balance = flightMapper.balance_check(userName);
             session.commit();
             int price = r.getPrice();
             int day = r.getDay();
+            if (r.getPaidOrNot() == 1) {
+                return "Already paid for this flight.<br/>";
+            }
             if (balance - price >= 0) {
                 flightMapper.update_balance(userName, balance - price);
                 session.commit();
@@ -428,16 +495,14 @@ public class Query {
             }
             return "Paid for reservation: " + reservationId + "<br/>";
         } catch (PersistenceException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof SQLException && transactionRetry > 0) {
-                SQLException e1 = new SQLException(cause);
-                if (isNotDeadLock(e1)) {
-                    session.rollback();
-                }
-                return pay(userName, reservationId, --transactionRetry);
-            } else {
-                return "Failed to pay for reservation: " + reservationId + ", internal error<br/>";
+            return transactionRetry > 0 ?
+                    pay(userName, reservationId, --transactionRetry) : "Internal error, try again later.<br/>";
+        } catch (SQLException e1) {
+            if (isNotDeadLock(e1)) {
+                session.rollback();
             }
+            return transactionRetry > 0 ?
+                    pay(userName, reservationId, --transactionRetry) : "Internal error, try again later.<br/>";
         }
     }
     public String view_balance(String userName, int transactionRetry) {
@@ -446,16 +511,14 @@ public class Query {
             int balance = flightMapper.balance_check(userName);
             return "Current balance: " + balance + "<br/>";
         } catch (PersistenceException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof SQLException && transactionRetry > 0) {
-                SQLException e1 = new SQLException(cause);
-                if (isNotDeadLock(e1)) {
-                    session.rollback();
-                }
-                return view_balance(userName, --transactionRetry);
-            } else {
-                return "Failed to view " + userName + "'s balance, internal error<br/>";
+            return transactionRetry > 0 ?
+                    view_balance(userName, --transactionRetry) : "Internal error, try again later.<br/>";
+        } catch (SQLException e1) {
+            if (isNotDeadLock(e1)) {
+                session.rollback();
             }
+            return transactionRetry > 0 ?
+                    view_balance(userName, --transactionRetry) : "Internal error, try again later.<br/>";
         }
     }
     public String cancel(String userName, int reservationId, int transactionRetry) {
@@ -463,6 +526,9 @@ public class Query {
             FlightMapper flightMapper = session.getMapper(FlightMapper.class);
             Reservation r = flightMapper.retrieve_price(reservationId);
             session.commit();
+            if (r == null) {
+                return "Failed to cancel, no such reservation<br/>";
+            }
             int price = r.getPrice();
             int day = r.getDay();
             flightMapper.cancel_reservation(userName, day);
@@ -471,16 +537,14 @@ public class Query {
             session.commit();
             return "Canceled reservation: " + reservationId + "<br/>";
         } catch (PersistenceException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof SQLException && transactionRetry > 0) {
-                SQLException e1 = new SQLException(cause);
-                if (isNotDeadLock(e1)) {
-                    session.rollback();
-                }
-                return cancel(userName, reservationId, --transactionRetry);
-            } else {
-                return "Failed to cancel reservation: " + reservationId + ", internal error<br/>";
+            return transactionRetry > 0 ?
+                    cancel(userName, reservationId, --transactionRetry) : "Internal error, try again later.<br/>";
+        } catch (SQLException e1) {
+            if (isNotDeadLock(e1)) {
+                session.rollback();
             }
+            return transactionRetry > 0 ?
+                    cancel(userName, reservationId, --transactionRetry) : "Internal error, try again later.<br/>";
         }
     }
 }

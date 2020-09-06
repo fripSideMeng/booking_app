@@ -19,7 +19,7 @@ public class Search extends HttpServlet {
     public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException, ServletException {
         res.setContentType("text/xml;charset=UTF-8");
         PrintWriter pw = res.getWriter();
-        pw.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        pw.print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
         String origin = req.getParameter("origin");
         String dest = req.getParameter("dest");
@@ -33,12 +33,12 @@ public class Search extends HttpServlet {
             SqlSession session = sqlSessionFactory.openSession(false);
             Query tmpQuery = new Query(session);
             String searchResults = tmpQuery.search(origin, dest, dayOfMonth, numberOfItineraries, indirectFlight);
-            pw.append(searchResults);
+            pw.print(searchResults);
         } else {
             Query currentQuery = (Query)currentSession.getAttribute("query");
             String searchResults = currentQuery.search(origin, dest, dayOfMonth,
                     numberOfItineraries, indirectFlight);
-            pw.append(searchResults);
+            pw.print(searchResults);
         }
     }
 }
