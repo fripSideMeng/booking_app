@@ -14,17 +14,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 @Alias("Query")
 public class Query {
     private static final int HASH_STRENGTH = 65536;
     private static final int KEY_LENGTH = 128;
-    private static User currentUser;
-    private static Map<Integer, Reservation> recentSearch;
-    public static final int transactionRetry = 4;
-    private List<Integer> itineraryIds;
-    private SqlSession session;
+    private User currentUser;
+    private Map<Integer, Reservation> recentSearch;
+    private final SqlSession session;
 
     private static boolean isNotDeadLock(SQLException e) {
         return e.getErrorCode() != 1205;
@@ -36,10 +33,7 @@ public class Query {
 
     public Query(SqlSession session) {
         this.session = session;
-    }
-
-    public Map<Integer, Reservation> getRecentSearch() {
-        return recentSearch;
+        this.recentSearch = new HashMap<>();
     }
 
     // Return connection back to the pool
@@ -87,21 +81,33 @@ public class Query {
     }
     public String search(String originCity, String destCity,
                          int dayOfMonth, int numOfFlights, boolean indirect) {
-        recentSearch = new HashMap<>();
         StringBuilder sb = new StringBuilder();
         FlightMapper flightMapper = session.getMapper(FlightMapper.class);
         List<Flight> flights = flightMapper.transaction_search(originCity, destCity, dayOfMonth, numOfFlights);
         session.commit();
         int itineraryId = 1;
+        sb.append("<Flights>\n");
         if (!indirect || flights.size() >= numOfFlights) {
-            sb.append("<h1>Search Results</h1>\n<p>");
             for (Flight f : flights) {
-                sb.append(f.toString()).append("<br/>");
+                sb.append("  <Flight>\n");
+                sb.append("    <day>").append(f.getDayOfMonth()).append("</day>\n");
+                sb.append("    <carrier>").append(f.getCarrierId()).append("</carrier>\n");
+                sb.append("    <number>").append(f.getFlightNum()).append("</number>\n");
+                sb.append("    <origin>").append(f.getOriginCity()).append("</origin>\n");
+                sb.append("    <dest>").append(f.getDestCity()).append("</dest>\n");
+                sb.append("    <capacity>").append(f.getCapacity()).append("</capacity>\n");
+                sb.append("    <time>").append(f.getTime()).append("</time>\n");
+                sb.append("    <price>").append(f.getPrice()).append("</price>\n");
                 if (currentUser != null) {
+                    sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
+                            .append(itineraryId).append("'>Book this flight</a></book>\n");
                     recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                             f.getFid(), -1, f.getDayOfMonth(), f.getPrice(), 0));
                     itineraryId++;
+                } else {
+                    sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
                 }
+                sb.append("  </Flight>\n");
             }
         } else {
             List<TwoFlights> indirectFlights =
@@ -116,63 +122,165 @@ public class Query {
                 TwoFlights ff = indirectFlights.get(index2);
                 int doubleTime = ff.totalTime();
                 if (singleTime < doubleTime) {
-                    sb.append(f.toString());
+                    sb.append("  <Flight>\n");
+                    sb.append("    <day>").append(f.getDayOfMonth()).append("</day>\n");
+                    sb.append("    <carrier>").append(f.getCarrierId()).append("</carrier>\n");
+                    sb.append("    <number>").append(f.getFlightNum()).append("</number>\n");
+                    sb.append("    <origin>").append(f.getOriginCity()).append("</origin>\n");
+                    sb.append("    <dest>").append(f.getDestCity()).append("</dest>\n");
+                    sb.append("    <capacity>").append(f.getCapacity()).append("</capacity>\n");
+                    sb.append("    <time>").append(f.getTime()).append("</time>\n");
+                    sb.append("    <price>").append(f.getPrice()).append("</price>\n");
                     if (currentUser != null) {
+                        sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
+                                .append(itineraryId).append("'>Book this flight</a></book>\n");
                         recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                                 f.getFid(), -1, f.getDayOfMonth(), f.getPrice(), 0));
                         itineraryId++;
+                    } else {
+                        sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
                     }
+                    sb.append("  </Flight>\n");
                     index1++;
                 } else if (singleTime == doubleTime) { // break tie on fid
                     if (flights.get(index1).getFid() < indirectFlights.get(index2).getF1_fid()) {
-                        sb.append(f.toString());
+                        sb.append("  <Flight>\n");
+                        sb.append("    <day>").append(f.getDayOfMonth()).append("</day>\n");
+                        sb.append("    <carrier>").append(f.getCarrierId()).append("</carrier>\n");
+                        sb.append("    <number>").append(f.getFlightNum()).append("</number>\n");
+                        sb.append("    <origin>").append(f.getOriginCity()).append("</origin>\n");
+                        sb.append("    <dest>").append(f.getDestCity()).append("</dest>\n");
+                        sb.append("    <capacity>").append(f.getCapacity()).append("</capacity>\n");
+                        sb.append("    <time>").append(f.getTime()).append("</time>\n");
+                        sb.append("    <price>").append(f.getPrice()).append("</price>\n");
                         if (currentUser != null) {
+                            sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
+                                    .append(itineraryId).append("'>Book this flight</a></book>\n");
                             recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                                     f.getFid(), -1, f.getDayOfMonth(), f.getPrice(), 0));
                             itineraryId++;
+                        } else {
+                            sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
                         }
+                        sb.append("  </Flight>\n");
                         index1++;
                     } else {
-                        sb.append(ff.toString());
+                        Flight f1 = ff.getItinerary1();
+                        Flight f2 = ff.getItinerary2();
+                        sb.append("  <Flight>\n");
+                        sb.append("    <day>").append(f1.getDayOfMonth()).append("</day>\n");
+                        sb.append("    <carrier>").append(f1.getCarrierId()).append("|")
+                                .append(f2.getCarrierId()).append("</carrier>\n");
+                        sb.append("    <number>").append(f1.getFlightNum()).append("|")
+                                .append(f2.getFlightNum()).append("</number>\n");
+                        sb.append("    <origin>").append(f1.getOriginCity()).append("|")
+                                .append(f2.getOriginCity()).append("</origin>\n");
+                        sb.append("    <dest>").append(f1.getDestCity()).append("|")
+                                .append(f2.getDestCity()).append("</dest>\n");
+                        sb.append("    <capacity>").append(f1.getCapacity()).append("|")
+                                .append(f2.getCapacity()).append("</capacity>\n");
+                        sb.append("    <time>").append(f1.getTime()).append("|")
+                                .append(f2.getTime()).append("</time>\n");
+                        sb.append("    <price>").append(ff.getPrice()).append("</price>\n");
                         if (currentUser != null) {
+                            sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
+                                    .append(itineraryId).append("'>Book this flight</a></book>\n");
                             recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                                     ff.getF1_fid(), ff.getF2_fid(), ff.getDayOfMonth(), ff.getPrice(), 0));
                             itineraryId++;
+                        } else {
+                            sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
                         }
+                        sb.append("  </Flight>\n");
                         index2++;
                     }
                 } else {
-                    sb.append(ff.toString());
+                    Flight f1 = ff.getItinerary1();
+                    Flight f2 = ff.getItinerary2();
+                    sb.append("  <Flight>\n");
+                    sb.append("    <day>").append(f1.getDayOfMonth()).append("</day>\n");
+                    sb.append("    <carrier>").append(f1.getCarrierId()).append("|")
+                            .append(f2.getCarrierId()).append("</carrier>\n");
+                    sb.append("    <number>").append(f1.getFlightNum()).append("|")
+                            .append(f2.getFlightNum()).append("</number>\n");
+                    sb.append("    <origin>").append(f1.getOriginCity()).append("|")
+                            .append(f2.getOriginCity()).append("</origin>\n");
+                    sb.append("    <dest>").append(f1.getDestCity()).append("|")
+                            .append(f2.getDestCity()).append("</dest>\n");
+                    sb.append("    <capacity>").append(f1.getCapacity()).append("|")
+                            .append(f2.getCapacity()).append("</capacity>\n");
+                    sb.append("    <time>").append(f1.getTime()).append("|")
+                            .append(f2.getTime()).append("</time>\n");
+                    sb.append("    <price>").append(ff.getPrice()).append("</price>\n");
                     if (currentUser != null) {
+                        sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
+                                .append(itineraryId).append("'>Book this flight</a></book>\n");
                         recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                                 ff.getF1_fid(), ff.getF2_fid(), ff.getDayOfMonth(), ff.getPrice(), 0));
                         itineraryId++;
+                    } else {
+                        sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
                     }
+                    sb.append("  </Flight>\n");
                     index2++;
                 }
             }
             while (index1 < flights.size()) {
                 Flight f = flights.get(index1);
-                sb.append(f.toString());
+                sb.append("  <Flight>\n");
+                sb.append("    <day>").append(f.getDayOfMonth()).append("</day>\n");
+                sb.append("    <carrier>").append(f.getCarrierId()).append("</carrier>\n");
+                sb.append("    <number>").append(f.getFlightNum()).append("</number>\n");
+                sb.append("    <origin>").append(f.getOriginCity()).append("</origin>\n");
+                sb.append("    <dest>").append(f.getDestCity()).append("</dest>\n");
+                sb.append("    <capacity>").append(f.getCapacity()).append("</capacity>\n");
+                sb.append("    <time>").append(f.getTime()).append("</time>\n");
+                sb.append("    <price>").append(f.getPrice()).append("</price>\n");
                 if (currentUser != null) {
+                    sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
+                            .append(itineraryId).append("'>Book this flight</a></book>\n");
                     recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                             f.getFid(), -1, f.getDayOfMonth(), f.getPrice(), 0));
                     itineraryId++;
+                } else {
+                    sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
                 }
+                sb.append("  </Flight>\n");
                 index1++;
             }
             while (index2 < indirectFlights.size()) {
                 TwoFlights ff = indirectFlights.get(index2);
-                sb.append(ff.toString());
+                Flight f1 = ff.getItinerary1();
+                Flight f2 = ff.getItinerary2();
+                sb.append("  <Flight>\n");
+                sb.append("    <day>").append(f1.getDayOfMonth()).append("</day>\n");
+                sb.append("    <carrier>").append(f1.getCarrierId()).append("|")
+                        .append(f2.getCarrierId()).append("</carrier>\n");
+                sb.append("    <number>").append(f1.getFlightNum()).append("|")
+                        .append(f2.getFlightNum()).append("</number>\n");
+                sb.append("    <origin>").append(f1.getOriginCity()).append("|")
+                        .append(f2.getOriginCity()).append("</origin>\n");
+                sb.append("    <dest>").append(f1.getDestCity()).append("|")
+                        .append(f2.getDestCity()).append("</dest>\n");
+                sb.append("    <capacity>").append(f1.getCapacity()).append("|")
+                        .append(f2.getCapacity()).append("</capacity>\n");
+                sb.append("    <time>").append(f1.getTime()).append("|")
+                        .append(f2.getTime()).append("</time>\n");
+                sb.append("    <price>").append(ff.getPrice()).append("</price>\n");
                 if (currentUser != null) {
+                    sb.append("    <book>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?iid=")
+                            .append(itineraryId).append("'>Book this flight</a></book>\n");
                     recentSearch.put(itineraryId, new Reservation(-1, currentUser.getUserName(),
                             ff.getF1_fid(), ff.getF2_fid(), ff.getDayOfMonth(), ff.getPrice(), 0));
                     itineraryId++;
+                } else {
+                    sb.append("    <book><a href='index.html'>Log in to book this flight</a></book>\n");
                 }
+                sb.append("  </Flight>\n");
                 index2++;
             }
         }
-        sb.append("</p>\n<hr/>");
+        sb.append("</Flights>");
         return sb.toString();
     }
     public String createUser(String userName, String password,
@@ -226,7 +334,7 @@ public class Query {
             int f1Remained = f1.getCapacity() - flightMapper.checkBookedSeats1(r.getFid1());
             if (f1Remained <= 0) {
                 session.commit();
-                return "Booking failed, first itinerary no seats available<br/>";
+                return "Booking failed, first itinerary no seats available";
             }
             int f2Remained;
             if (r.getFid2() != -1) {
@@ -234,7 +342,7 @@ public class Query {
                         - flightMapper.checkBookedSeats2(r.getFid2());
                 if (f2Remained <= 0) {
                     session.commit();
-                    return "Booking failed, second itinerary no seats available<br/>";
+                    return "Booking failed, second itinerary no seats available";
                 }
             }
             Integer currentFid1 = flightMapper.checkCurrentReservation(r.getUserName(), r.getDay());
@@ -242,18 +350,18 @@ public class Query {
                 flightMapper.insert_reservation(r.getUserName(), r.getPaidOrNot(), r.getPrice(),
                         r.getDay(), r.getFid1(), r.getFid2());
                 session.commit();
-                return "Booked seat<br/>";
+                return "Booked seat";
             } else {
                 if (r.getFid2() == -1) { // No second itinerary needs to be added
                     session.commit();
-                    return "Booking failed, you cannot book two flights in the same day<br/>";
+                    return "Booking failed, you cannot book two flights in the same day";
                 } else if (r.getFid1() == currentFid1) {
                     session.commit();
-                    return "Booking failed, you cannot book two flights in the same day<br/>";
+                    return "Booking failed, you cannot book two flights in the same day";
                 } else { // Update the second itinerary
                     flightMapper.update_reservation(r.getFid2(), r.getUserName(), r.getFid1());
                     session.commit();
-                    return "Booked seat on second itinerary<br/>";
+                    return "Booked seat on second itinerary";
                 }
             }
         } catch (PersistenceException e) {
@@ -269,12 +377,25 @@ public class Query {
             }
         }
     }
-    public List<Reservation> view_reservations(String userName, int transactionRetry) {
+    public String view_reservations(String userName, int transactionRetry) {
         try {
             FlightMapper flightMapper = session.getMapper(FlightMapper.class);
             List<Reservation> currentReservations = flightMapper.list_reservations(userName);
             session.commit();
-            return currentReservations;
+            StringBuilder sb = new StringBuilder();
+            for (Reservation r : currentReservations) {
+                sb.append("  <Reservation>\n");
+                sb.append("    <rid>").append(r.getReservationId()).append("</rid>\n");
+                sb.append("    <paidOrNot>").append(r.getPaidOrNot() == 1 ? "Paid" : "Not paid")
+                        .append("</paidOrNot>\n");
+                sb.append("    <day>").append(r.getDay()).append("</day>\n");
+                sb.append("    <pay>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/book?rid=")
+                        .append(r.getReservationId()).append("'>Pay for this reservation</a></pay>\n");
+                sb.append("    <cancel>").append("<a href='192.168.1.67:8080/booking_app-1.0-SNAPSHOT/cancel?rid=")
+                        .append(r.getReservationId()).append("'>Cancel this flight</a></cancel>\n");
+                sb.append("  </Reservation>\n");
+            }
+            return sb.toString();
         } catch (PersistenceException e) {
             final Throwable cause = e.getCause();
             if (cause instanceof SQLException && transactionRetry > 0) {
@@ -284,7 +405,7 @@ public class Query {
                 }
                 return view_reservations(userName, --transactionRetry);
             } else {
-                return null;
+                return "Failed to view reservations, internal error";
             }
         }
     }
@@ -316,6 +437,24 @@ public class Query {
                 return pay(userName, reservationId, --transactionRetry);
             } else {
                 return "Failed to pay for reservation: " + reservationId + ", internal error<br/>";
+            }
+        }
+    }
+    public String view_balance(String userName, int transactionRetry) {
+        try {
+            FlightMapper flightMapper = session.getMapper(FlightMapper.class);
+            int balance = flightMapper.balance_check(userName);
+            return "Current balance: " + balance + "<br/>";
+        } catch (PersistenceException e) {
+            final Throwable cause = e.getCause();
+            if (cause instanceof SQLException && transactionRetry > 0) {
+                SQLException e1 = new SQLException(cause);
+                if (isNotDeadLock(e1)) {
+                    session.rollback();
+                }
+                return view_balance(userName, --transactionRetry);
+            } else {
+                return "Failed to view " + userName + "'s balance, internal error<br/>";
             }
         }
     }

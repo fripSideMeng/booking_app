@@ -5,12 +5,27 @@
 		<title>Login Page</title>
 	</head>
 	<body>
-		<form action="welcome" method="post">
-		Enter your name: <input type="text" name="userName"/><br/>
-		Enter your passwd: <input type="password" name="userPass"/><br/>
-		New User? <a href="createUser.html">Click Here</a><br/>
-		Search without login: <a href="search.html">Begin Search</a><br/>
+		<form name="loginForm" action="welcome" onsubmit="return validateForm()" method="post">
+			Enter your name: <input type="text" name="userName"/><br/>
+			Enter your passwd: <input type="password" name="userPass"/><br/>
+			New User? <a href="createUser.html">Click Here</a><br/>
+			Search without login: <a href="search.html">Begin Search</a><br/>
 			<input type="submit" value="Login"/><br/>
 		</form>
+		<script type = "text/javascript">
+			function validateForm() {
+				var inputName = document.forms["loginForm"]["userName"].value;
+				var password = document.forms["loginForm"]["userPass"].value;
+				if (inputName == "" || inputName.includes(" ")) {
+					alert("Username format error.");
+					return false;
+				}
+				if (password == "" || password.includes(" ") || password.length <= 6) {
+					alert("Password format error.");
+					return false;
+				}
+				return true;
+			}
+		</script>
 	</body>
 </html>

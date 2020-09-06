@@ -67,8 +67,4 @@ public class TwoFlights {
     protected int getDayOfMonth() {
         return f1_dayOfMonth;
     }
-    @Override
-    public String toString() {
-        return getItinerary1().toString() + getItinerary2().toString();
-    }
 }

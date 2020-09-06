@@ -61,11 +61,4 @@ public class Flight {
     public String getFlightNum() {
         return flightNum;
     }
-
-    @Override
-    public String toString() {
-        return "ID: " + fid + " Day: " + dayOfMonth + " Carrier: " + carrierId + " Number: " + flightNum
-                + " Origin: " + originCity + " Dest: " + destCity + " Duration: " + time + " Capacity: " + capacity
-                + " Price: " + price + "<br/>";
-    }
 }

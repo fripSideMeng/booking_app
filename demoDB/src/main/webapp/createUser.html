@@ -1,16 +1,38 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="ISO-8859-1">
+		<meta charset="UTF-8">
 		<title>Sign Up Page</title>
 	</head>
 	<body>
-		<form action="create" method="post">
+		<form name="myForm" action="create" onsubmit="return validateForm()" method="post">
 			Enter your username: <input type="text" name="userName"/><br/>
+			(must not contain '\' and spaces)<br/>
 			Enter your password: <input type="password" name="userPass"/><br/>
+			(must not contain '\' and spaces and must be longer than 6 characters)<br/>
 			Enter your deposit: <input type="number" name="deposit"/><br/>
-			(must be integers greater than 5000)<br/>
+			(must be integers greater than 5000 and less than 10000000)<br/>
 			<input type="submit" value="Create User"/><br/>
 		</form>
+		<script type = "text/javascript">
+			function validateForm() {
+				var inputName = document.forms["myForm"]["userName"].value;
+				var password = document.forms["myForm"]["userPass"].value;
+				var deposit = document.forms["myForm"]["deposit"].value;
+				if (inputName == "" || inputName.includes(" ")) {
+					alert("Username format error.");
+					return false;
+				}
+				if (password == "" || password.includes(" ") || password.length <= 6) {
+					alert("Password format error.");
+					return false;
+				}
+				if (isNaN(deposit) || deposit < 5000 || deposit > 10000000) {
+					alert("Deposit format error.");
+					return false;
+				}
+				return true;
+			}
+		</script>
 	</body>
 </html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+		h1 {text-align:center;}
+		p {text-align: center;}
+	</style>
+    <title>Viewing Page</title>
+</head>
+<body>
+  <form action="welcome" method="post"><input type="submit" value="Homepage"/></form>
+  <form action="balance" method="post"><input type="submit" value="View Balance"/></form>
+  <a href="logout">Logout</a>
+  <button name="View your reservations" onclick="loadDoc()">View Your Reservations</button>
+  <hr/>
+  <h1>Current Reservations</h1>
+  <p id="reservations">Your reservations will be listed here</p>
+  <script type = "text/javascript">
+      function loadDoc() {
+		var xhttp;
+        xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+		  if (this.readyState == 4 && this.status == 200) {
+		    myParser(this);
+	 	  }
+		}
+		xhttp.open("GET", "view", true);
+		xhttp.send();
+      }
+      function myParser(xml) {
+        var xmlDoc = xml.responseXML;
+  		var table = "<tr><th>Rid</th><th>Payment Status</th><th>Day</th><th>Pay for this reservation</th><th>Cancel this reservation</th></tr>";
+  		var nodes = xml.evaluate("/Reservations/Reservation", xml, null, XPathResult.ANY_TYPE, null);
+        var result = nodes.iterateNext();
+        while (result) {
+          table += "<tr><td>" +
+                   result.childNodes[0].nodeValue + "</td><td>" +
+                   result.childNodes[1].nodeValue + "</td><td>" +
+                   result.childNodes[2].nodeValue + "</td><td>" +
+                   result.childNodes[3].nodeValue + "</td><td>" +
+                   result.childNodes[4].nodeValue + "</td></tr>";
+          result = nodes.iterateNext();
+        }
+        document.getElementById("reservations").innerHTML = table;
+      }
+  </script>
+</body>
+</html>

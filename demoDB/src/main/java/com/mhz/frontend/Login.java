@@ -31,11 +31,14 @@ public class Login implements Filter {
         PrintWriter pw = res.getWriter();
         Reader reader = Resources.getResourceAsReader("mybatis-config.xml");
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
-        SqlSession session = sqlSessionFactory.openSession(TransactionIsolationLevel.SERIALIZABLE);
 
-        if (req.getParameter("userName") != null && req.getParameter("userPass") != null) {
+        if (req.getSession(false) == null
+                || req.getSession(false).getAttribute("query") == null
+                || ((Query)req.getSession(false).getAttribute("query"))
+                    .getCurrentUserName().equals("Not logged in")) {
             String nameInput = req.getParameter("userName");
             String passwd = req.getParameter("userPass");
+            SqlSession session = sqlSessionFactory.openSession(TransactionIsolationLevel.SERIALIZABLE);
             Query currentQuery = new Query(session);
             String logInfo = currentQuery.login(nameInput, passwd, 4);
             if (logInfo.startsWith("Logged in as")) {
@@ -47,10 +50,8 @@ public class Login implements Filter {
                 RequestDispatcher rd = req.getRequestDispatcher("index.html");
                 rd.include(req, res);
             }
-        } else if (req.getSession(false) != null
-                && req.getSession(false).getAttribute("query") != null) {
+        } else {
             chain.doFilter(req, res);
         }
-        pw.close();
     }
 }

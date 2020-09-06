@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/html">
 	<head>
-		<meta charset='ISO-8859-1'>
+		<meta charset='UTF-8'>
 		<title>Search Page</title>
+		<style>
+			h1 {text-align:center;}
+			p {text-align: center;}
+		</style>
 	</head>
 	<body>
-		<form action='search' method='post'>
-			Origin City: <input list='origin' name='origin'>
-			<datalist id='origin'>
+		<form id="search_form" action='search' method='post'>
+			Origin City: <input id='origin' list='originCity'>
+			<datalist id='originCity'>
 				<option value='Aberdeen SD'>
 				<option value='Abilene TX'>
 				<option value='Adak Island AK'>
@@ -336,8 +340,8 @@
 				<option value='Yakutat AK'>
 				<option value='Yuma AZ'>
 			</datalist><br/>
-			Destination City: <input list='dest' name='dest'>
-			<datalist id='dest'>
+			Destination City: <input id='dest' list='destCity'>
+			<datalist id='destCity'>
 				<option value='Aberdeen SD'>
 				<option value='Abilene TX'>
 				<option value='Adak Island AK'>
@@ -723,12 +727,54 @@
 				<option value='20'>20</option>
 			</select><br/>
 			<label for='directOrNot'>Direct itineraries only? </label>
-			<select id='directOrNot' name='directOrNot'>
+			<select id='directOrNot' name='DirectOrNot'>
 				<option value='yes'>Yes</option>
 				<option value='no'>No</option>
 			</select><br/>
-			<input type='submit' value='Begin Search'/>
+			<input type='button' onclick='loadDoc()' value='Begin Search'>
 		</form>
+		<h1>Search Results</h1>
+		<p id="results">Your results will be displayed here.</p>
+		<script type = "text/javascript">
+		function loadDoc() {
+		  var xhttp;
+		  xhttp = new XMLHttpRequest();
+		  xhttp.open("POST", "search", true);
+		  var searchInfo = "origin=" + document.getElementById("origin").value
+		  					+ "&dest=" + document.getElementById("dest").value
+		  					+ "&day=" + document.getElementById("day").value
+		  					+ "&itineraries=" + document.getElementById("num").value
+		  					+ "&directOrNot=" + document.getElementById("directOrNot").value;
+		  xhttp.send(searchInfo);
+		  xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+			    alert("Ready");
+				myParser(this);
+			}
+		  }
+		}
+		function myParser(xml) {
+  		  var xmlDoc = xml.responseXML;
+  		  var table = "<tr><th>Day</th><th>Carrier</th><th>Flight.No</th><th>Origin City</th>"
+  		  			  +	"<th>Dest City</th><th>Capacity</th><th>Time</th><th>Price</th><th>Book Here</th></tr>";
+  		  var nodes = xml.evaluate("/Flights/Flight", xml, null, XPathResult.ANY_TYPE, null);
+          var result = nodes.iterateNext();
+  		  while (result) {
+    	    table += "<tr><td>" +
+    			  result.childNodes[0].nodeValue + "</td><td>" +
+    			  result.childNodes[1].nodeValue + "</td><td>" +
+    			  result.childNodes[2].nodeValue + "</td><td>" +
+    			  result.childNodes[3].nodeValue + "</td><td>" +
+    			  result.childNodes[4].nodeValue + "</td><td>" +
+    			  result.childNodes[5].nodeValue + "</td><td>" +
+    			  result.childNodes[6].nodeValue + "</td><td>" +
+    			  result.childNodes[7].nodeValue + "</td><td>" +
+    			  result.childNodes[8].nodeValue + "</td></tr>";
+    		result = nodes.iterateNext();
+  		  }
+  		  document.getElementById("results").innerHTML = table;
+		}
+  		</script>
 	</body>
 </html>
 
